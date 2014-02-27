@@ -21,12 +21,7 @@ except ImportError:
     logger.warn('Requested AUI toolkit (ETS_WX_AUI=%s) not available', requested)
 
 if aui is None:
-    # If nothing specified, prefer the pure python implementation of AUI if
-    # available
-    try:
-        from wx.lib.agw import aui
-    except ImportError:
-        try:
-            from wx import aui
-        except ImportError:
-            aui = None
+    # If nothing specified, use the included copy of wx.lib.agw.aui that
+    # includes some bug fixes.  Upstream does have copies of these bug fixes,
+    # but they haven't been propagated to any new releases of wxPython.
+    from pyface.wx.agw import aui
