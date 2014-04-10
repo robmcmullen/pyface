@@ -1739,7 +1739,7 @@ class AuiToolBar(wx.PyControl):
         return self.AddTool(tool_id, "", bitmap, disabled_bitmap, kind, short_help_string, long_help_string, client_data)
 
 
-    def AddTool(self, tool_id, label, bitmap, disabled_bitmap, kind, short_help_string, long_help_string, client_data):
+    def AddTool(self, tool_id, label, bitmap, disabled_bitmap, kind, short_help_string, long_help_string, client_data=None):
         """
         Adds a tool to the toolbar. This is the full feature version of L{AddTool}.
 
@@ -1800,6 +1800,7 @@ class AuiToolBar(wx.PyControl):
         self._items.append(item)
         return self._items[-1]
 
+    AddLabelTool = AddTool
 
     def AddCheckTool(self, tool_id, label, bitmap, disabled_bitmap, short_help_string="", long_help_string="", client_data=None):
         """
@@ -3255,6 +3256,9 @@ class AuiToolBar(wx.PyControl):
             self.SetOrientation(wx.HORIZONTAL)
         else:
             self.SetOrientation(wx.VERTICAL)
+
+        if not hasattr(self, '_absolute_min_size'):
+            return
 
         if (x >= y and self._absolute_min_size.x > x) or (y > x and self._absolute_min_size.y > y):
         
