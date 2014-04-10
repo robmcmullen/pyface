@@ -2621,6 +2621,7 @@ class AuiToolBar(wx.PyControl):
         
         return False
 
+    GetToolState = GetToolToggled
 
     def EnableTool(self, tool_id, state):
         """
