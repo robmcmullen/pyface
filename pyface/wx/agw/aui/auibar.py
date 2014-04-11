@@ -1983,6 +1983,9 @@ class AuiToolBar(wx.PyControl):
         self._items.append(item)
         return self._items[-1]
 
+    def InsertToolItem(self, pos, tool):
+        self._items[pos:pos] = [tool]
+        return tool
 
     def Clear(self):
         """ Deletes all the tools in the L{AuiToolBar}. """
@@ -2008,15 +2011,33 @@ class AuiToolBar(wx.PyControl):
         :note: Note that it is unnecessary to call L{Realize} for the change to
          take place, it will happen immediately.
         """
+        tool = self.RemoveTool(tool_id)
+        if tool is not None:
+            tool.Destroy()
+            return True
+        
+        return False
+    
+    def RemoveTool(self, tool_id):
+        """
+        Removes the specified tool from the toolbar but doesn't delete it.
+
+        :param `tool_id`: the L{AuiToolBarItem} identifier.
+
+        :returns: ``True`` if the tool was deleted, ``False`` otherwise.
+        
+        :note: Note that it is unnecessary to call L{Realize} for the change to
+         take place, it will happen immediately.
+        """
 
         idx = self.GetToolIndex(tool_id)
         
         if idx >= 0 and idx < len(self._items):
-            self._items.pop(idx)
+            tool = self._items.pop(idx)
             self.Realize()
-            return True
+            return tool
         
-        return False
+        return None
 
 
     def DeleteToolByPos(self, pos):
@@ -2063,6 +2084,7 @@ class AuiToolBar(wx.PyControl):
     
         return None
 
+    FindById = FindTool
 
     def FindToolForPosition(self, x, y):
         """
@@ -2818,6 +2840,7 @@ class AuiToolBar(wx.PyControl):
 
         return len(self._items)
 
+    GetToolsCount = GetToolCount
 
     def GetToolIndex(self, tool_id):
         """
@@ -2846,7 +2869,9 @@ class AuiToolBar(wx.PyControl):
         """
         
         return self.GetToolIndex(tool_id)
-                                
+    
+    def GetToolByPos(self, pos):
+        return self._items[pos]
 
     def GetToolFitsByIndex(self, tool_id):
         """
