@@ -22,10 +22,13 @@ if wx.VERSION < (2, 6):
 _app = wx.GetApp()
 
 if _app is None:
-    _app = wx.PySimpleApp()
-
-    # Before we can load any images we have to initialize wxPython's image
-    # handlers.
-    wx.InitAllImageHandlers()
+    if wx.VERSION < (3, 0):
+        _app = wx.PySimpleApp()
+        
+        # Before we can load any images we have to initialize wxPython's image
+        # handlers.
+        wx.InitAllImageHandlers()
+    else:
+        _app = wx.App()
 
 #### EOF ######################################################################
