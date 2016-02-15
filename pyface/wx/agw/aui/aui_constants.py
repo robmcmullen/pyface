@@ -223,7 +223,7 @@ AUI_NB_NO_TAB_FOCUS        = 1 << 22
 
 AUI_NB_DEFAULT_STYLE = AUI_NB_TOP | AUI_NB_TAB_SPLIT | AUI_NB_TAB_MOVE | \
                        AUI_NB_SCROLL_BUTTONS | AUI_NB_CLOSE_ON_ACTIVE_TAB | \
-                       AUI_NB_MIDDLE_CLICK_CLOSE | AUI_NB_DRAW_DND_TAB
+                       AUI_NB_MIDDLE_CLICK_CLOSE
 """ Default `AuiNotebook` style. """
 
 #----------------------------------------------------------------------
