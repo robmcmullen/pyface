@@ -7128,6 +7128,16 @@ class AuiManager(wx.EvtHandler):
 
                 tmpDock.size = 1
                 break
+        neighbor_docks = []
+        horizontal = dock.dock_direction == AUI_DOCK_LEFT or dock.dock_direction == AUI_DOCK_RIGHT
+        right_or_down = dock.dock_direction == AUI_DOCK_RIGHT or dock.dock_direction == AUI_DOCK_BOTTOM
+        for d in docks:
+            if d.dock_direction == dock.dock_direction and d.dock_layer == dock.dock_layer:
+                if horizontal:
+                    neighbor_docks.append((d.rect.x, d.rect.width))
+                else:
+                    neighbor_docks.append((d.rect.y, d.rect.height))
+        neighbor_docks.sort()
 
         sizer, panes, docks, uiparts = self.LayoutAll(panes, docks, [], True, False)
         client_size = self._frame.GetClientSize()
@@ -7154,33 +7164,31 @@ class AuiManager(wx.EvtHandler):
         partnerDock = self.GetPartnerDock(dock)
 
         if partnerDock:
-            partnerRange = partnerDock.size - partnerDock.min_size
-            if partnerDock.min_size == 0:
-                partnerRange -= sash_size
-                if dock.IsHorizontal():
-                    partnerRange -= caption_size
-
-            direction = dock.dock_direction
-
-            if direction == AUI_DOCK_LEFT:
-                minPix = new_dock.rect.x + new_dock.rect.width
-                maxPix = dock.rect.x + dock.rect.width
-                maxPix += partnerRange
-
-            elif direction == AUI_DOCK_TOP:
-                minPix = new_dock.rect.y + new_dock.rect.height
-                maxPix = dock.rect.y + dock.rect.height
-                maxPix += partnerRange
-
-            elif direction == AUI_DOCK_RIGHT:
-                minPix = dock.rect.x - partnerRange - sash_size
-                maxPix = new_dock.rect.x - sash_size
-
-            elif direction == AUI_DOCK_BOTTOM:
-                minPix = dock.rect.y - partnerRange - sash_size
-                maxPix = new_dock.rect.y - sash_size
-
-            return minPix, maxPix
+            if horizontal:
+                pos = dock.rect.x
+                size = dock.rect.width
+            else:
+                pos = dock.rect.y
+                size = dock.rect.height
+            
+            min_pos = pos
+            max_pos = pos + size
+            if right_or_down:
+                for p, s in neighbor_docks:
+                    if p >= pos:
+                        max_pos = p + s - sash_size
+                        break
+                    else:
+                        min_pos = p + sash_size
+            else:
+                for p, s in neighbor_docks:
+                    if p > pos:
+                        max_pos = p + s - sash_size
+                        break
+                    else:
+                        min_pos = p + sash_size
+            
+            return min_pos, max_pos
 
         direction = new_dock.dock_direction
 
@@ -9061,6 +9069,44 @@ class AuiManager(wx.EvtHandler):
         return self.RestrictResize(clientPt, screenPt, createDC=False)
 
 
+    def GetPartnerDockFromPos(self, dock, point):
+        """Get the neighboring dock located at the given position, used to
+        find the other dock that is going to change size when resizing the
+        specified dock.
+        """
+        horizontal = dock.dock_direction == AUI_DOCK_LEFT or dock.dock_direction == AUI_DOCK_RIGHT
+        right_or_down = dock.dock_direction == AUI_DOCK_RIGHT or dock.dock_direction == AUI_DOCK_BOTTOM
+        if horizontal:
+            pos = point.x
+        else:
+            pos = point.y
+        neighbor_docks = []
+        for d in self._docks:
+            if d.dock_direction == dock.dock_direction and d.dock_layer == dock.dock_layer:
+                if horizontal:
+                    neighbor_docks.append((d.rect.x, d.rect.width, d))
+                else:
+                    neighbor_docks.append((d.rect.y, d.rect.height, d))
+        neighbor_docks.sort()
+        last = None
+        if right_or_down:
+            for p, s, d in neighbor_docks:
+                if pos < p + s:
+                    if d.dock_row == dock.dock_row:
+                        d = last
+                    break
+                last = d
+        else:
+            neighbor_docks.reverse()
+            for p, s, d in neighbor_docks:
+                if pos > p:
+                    if d.dock_row == dock.dock_row:
+                        d = last
+                    break
+                last = d
+        return d
+
+
     def RestrictResize(self, clientPt, screenPt, createDC):
         """ Common method between :meth:`DoEndResizeAction` and :meth:`OnLeftUp_Resize`. """
 
@@ -9091,9 +9137,9 @@ class AuiManager(wx.EvtHandler):
             newPos.x = Clip(newPos.x, minPix, maxPix)
 
         if self._action_part.type == AuiDockUIPart.typeDockSizer:
-
-            partnerDock = self.GetPartnerDock(dock)
+            partner = self.GetPartnerDockFromPos(dock, newPos)
             sash_size = self._art.GetMetric(AUI_DOCKART_SASH_SIZE)
+            button_size = self._art.GetMetric(AUI_DOCKART_PANE_BUTTON_SIZE)
             new_dock_size = 0
             direction = dock.dock_direction
 
@@ -9109,15 +9155,17 @@ class AuiManager(wx.EvtHandler):
             elif direction == AUI_DOCK_BOTTOM:
                 new_dock_size = dock.rect.y + dock.rect.height - newPos.y - sash_size
 
-            deltaDockSize = new_dock_size - dock.size
+            delta = new_dock_size - dock.size
+            if delta < -dock.size + sash_size:
+                delta = -dock.size + sash_size
+            elif -button_size < delta < button_size:
+                delta = button_size * (1 if delta > 0 else -1)
 
-            if partnerDock:
-                if deltaDockSize > partnerDock.size - sash_size:
-                    deltaDockSize = partnerDock.size - sash_size
-
-                partnerDock.size -= deltaDockSize
-
-            dock.size += deltaDockSize
+            if partner:
+                if delta > partner.size - sash_size:
+                    delta = partner.size - sash_size
+                partner.size -= delta
+            dock.size += delta
             self.Update()
 
         else:
