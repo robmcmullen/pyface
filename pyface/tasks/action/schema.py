@@ -88,11 +88,14 @@ class MenuSchema(Schema):
     # The menu's user visible name.
     name = Unicode
 
+    # Does the menu require a separator before the menu item?
+    separator = Bool(False)
+
     # A factory for instantiating a pyface MenuManager.
     menu_manager_factory = Callable(MenuManager)
 
     def create(self, children):
-        traits = dict(id=self.id, name=self.name)
+        traits = dict(id=self.id, name=self.name, separator=self.separator)
         return self.menu_manager_factory(*children, **traits)
 
 
