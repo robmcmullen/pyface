@@ -19,7 +19,7 @@ from pyface.window import Window
 from traits.api import Instance
 
 # Local imports.
-from action import Action
+from pyface.action.action import Action
 
 
 class WindowAction(Action):
@@ -27,7 +27,5 @@ class WindowAction(Action):
 
     #### 'WindowAction' interface #############################################
 
-    # The window that the action is in.
+    #: The window that the action is associated with.
     window = Instance(Window)
-
-#### EOF ######################################################################

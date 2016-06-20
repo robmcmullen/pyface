@@ -33,8 +33,8 @@ from pyface.i_application_window import MApplicationWindow
 from pyface.image_resource import ImageResource
 
 # Local imports.
-from window import Window
-from system_metrics import SystemMetrics
+from .window import Window
+from .system_metrics import SystemMetrics
 
 
 @provides(IApplicationWindow)
@@ -170,6 +170,11 @@ class ApplicationWindow(MApplicationWindow, Window):
         control.SetBackgroundColour(attr.colBg)
 
         return control
+
+    def destroy(self):
+        if self.control and AUI:
+            self._aui_manager.UnInit()
+        super(ApplicationWindow, self).destroy()
 
     ###########################################################################
     # Private interface.

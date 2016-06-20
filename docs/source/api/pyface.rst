@@ -1,9 +1,11 @@
+==============
 pyface Package
 ==============
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
+    modules
     pyface.action
     pyface.dock
     pyface.grid
@@ -12,6 +14,7 @@ pyface Package
     pyface.resource
     pyface.sizers
     pyface.tasks
+    pyface.tests
     pyface.timer
     pyface.tree
     pyface.ui
@@ -20,4 +23,3 @@ pyface Package
     pyface.wizard
     pyface.workbench
     pyface.wx
-

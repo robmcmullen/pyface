@@ -91,11 +91,16 @@ class MenuSchema(Schema):
     # Does the menu require a separator before the menu item?
     separator = Bool(False)
 
+    # The default action for tool button when shown in a toolbar (Qt only)
+    action = Instance(Action)
+
     # A factory for instantiating a pyface MenuManager.
     menu_manager_factory = Callable(MenuManager)
 
     def create(self, children):
         traits = dict(id=self.id, name=self.name, separator=self.separator)
+        if self.action:
+            traits['action'] = self.action
         return self.menu_manager_factory(*children, **traits)
 
 

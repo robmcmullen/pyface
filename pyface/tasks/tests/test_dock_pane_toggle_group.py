@@ -6,6 +6,10 @@ from pyface.tasks.action.api import SMenu, SMenuBar, SGroup, \
     DockPaneToggleGroup
 from pyface.tasks.api import DockPane, Task, TaskPane, TaskWindow
 from traits.api import List
+from traits.etsconfig.api import ETSConfig
+
+
+USING_WX = ETSConfig.toolkit not in ['', 'qt4']
 
 
 class BogusTask(Task):
@@ -42,6 +46,7 @@ class BogusTask(Task):
 
 class DockPaneToggleGroupTestCase(unittest.TestCase):
 
+    @unittest.skipIf(USING_WX, "TaskWindowBackend is not implemented in WX")
     def setUp(self):
         # Set up the bogus task with its window.
         self.task = BogusTask()
@@ -78,7 +83,7 @@ class DockPaneToggleGroupTestCase(unittest.TestCase):
         # Names are sorted by the group.
         names = self.get_dock_pane_toggle_action_names()
         expected_names = ['Dock Pane 1', 'Dock Pane 2']
-        self.assertItemsEqual(expected_names, names)
+        self.assertEqual(list(sorted(expected_names)), list(sorted(names)))
 
     def test_react_to_dock_pane_added(self):
         # Add a dock pane to the task.
@@ -92,7 +97,7 @@ class DockPaneToggleGroupTestCase(unittest.TestCase):
         # Names are sorted by the group.
         names = self.get_dock_pane_toggle_action_names()
         expected_names = ['Dock Pane 0', 'Dock Pane 1', 'Dock Pane 2']
-        self.assertItemsEqual(expected_names, names)
+        self.assertEqual(list(sorted(expected_names)), list(sorted(names)))
 
     def test_react_to_dock_pane_removed(self):
         # Remove a dock pane from the task.
@@ -103,7 +108,8 @@ class DockPaneToggleGroupTestCase(unittest.TestCase):
 
         names = self.get_dock_pane_toggle_action_names()
         expected_names = ['Dock Pane 1']
-        self.assertItemsEqual(expected_names, names)
+        self.assertEqual(list(sorted(expected_names)), list(sorted(names)))
+
 
 if __name__ == '__main__':
     unittest.main()

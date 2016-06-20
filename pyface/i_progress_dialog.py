@@ -17,7 +17,7 @@
 from traits.api import Any, Bool, Int, Str
 
 # Local imports.
-from i_dialog import IDialog
+from pyface.i_dialog import IDialog
 
 
 class IProgressDialog(IDialog):
@@ -25,17 +25,29 @@ class IProgressDialog(IDialog):
     """
 
     #### 'IProgressDialog' interface ##################################
-    title = Str
+
+    #: The message to display in the dialog
     message = Str
+
+    #: The minimum progress value
     min = Int
+
+    #: The maximum progress value
     max = Int
+
+    #: The margin around the progress bar
     margin = Int(5)
+
+    #: Whether the operation can be cancelled
     can_cancel = Bool(False)
+
+    #: Whether to show progress times
     show_time = Bool(False)
+
+    #: Whether to show progress percent
     show_percent = Bool(False)
 
-
-    # Label for the 'cancel' button
+    #: Label for the 'cancel' button
     cancel_button_label = Str
 
     ###########################################################################
@@ -43,10 +55,24 @@ class IProgressDialog(IDialog):
     ###########################################################################
 
     def update(self, value):
+        """ Update the progress bar to the desired value
+
+        If the value is >= the maximum and the progress bar is not contained
+        in another panel the parent window will be closed.
+
+        Parameters
+        ----------
+        value :
+            The progress value to set.
         """
-        updates the progress bar to the desired value. If the value is >=
-        the maximum and the progress bar is not contained in another panel
-        the parent window will be closed
+
+    def change_message(self, message):
+        """ Change the displayed message in the progress dialog
+
+        Parameters
+        ----------
+        message : str or unicode
+            The new message to display.
 
         """
 
@@ -58,6 +84,8 @@ class MProgressDialog(object):
     Implements: update()
     """
 
+    #: The progress bar toolkit object
+    # XXX why not the control?
     progress_bar = Any
 
     ###########################################################################
@@ -65,11 +93,15 @@ class MProgressDialog(object):
     ###########################################################################
 
     def update(self, value):
-        """
-        updates the progress bar to the desired value. If the value is >=
-        the maximum and the progress bar is not contained in another panel
-        the parent window will be closed
+        """ Update the progress bar to the desired value
 
+        If the value is >= the maximum and the progress bar is not contained
+        in another panel the parent window will be closed.
+
+        Parameters
+        ----------
+        value :
+            The progress value to set.
         """
 
         if self.progress_bar is not None:
@@ -77,3 +109,14 @@ class MProgressDialog(object):
 
         if value >= self.max:
             self.close()
+
+    def change_message(self, message):
+        """ Change the displayed message in the progress dialog
+
+        Parameters
+        ----------
+        message : str or unicode
+            The new message to display.
+
+        """
+        self.message = message

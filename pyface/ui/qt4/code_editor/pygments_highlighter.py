@@ -21,11 +21,16 @@ def get_tokens_unprocessed(self, text, stack=('root',)):
     """ Split ``text`` into (tokentype, text) pairs.
 
         Monkeypatched to store the final stack on the object itself.
+
+        The `text` parameter that gets passed is only the current line, so to
+        highlight things like multiline strings correctly, we need to retrieve
+        the state from the previous line (this is done in PygmentsHighlighter,
+        below), and use it to continue processing the current line.
     """
     pos = 0
     tokendefs = self._tokens
-    if hasattr(self, '_epd_state_stack'):
-        statestack = list(self._epd_state_stack)
+    if hasattr(self, '_saved_state_stack'):
+        statestack = list(self._saved_state_stack)
     else:
         statestack = list(stack)
     statetokens = tokendefs[statestack[-1]]
@@ -33,11 +38,12 @@ def get_tokens_unprocessed(self, text, stack=('root',)):
         for rexmatch, action, new_state in statetokens:
             m = rexmatch(text, pos)
             if m:
-                if type(action) is _TokenType:
-                    yield pos, action, m.group()
-                else:
-                    for item in action(self, m):
-                        yield item
+                if action is not None:
+                    if type(action) is _TokenType:
+                        yield pos, action, m.group()
+                    else:
+                        for item in action(self, m):
+                            yield item
                 pos = m.end()
                 if new_state is not None:
                     # state transition
@@ -71,7 +77,7 @@ def get_tokens_unprocessed(self, text, stack=('root',)):
                 pos += 1
             except IndexError:
                 break
-    self._epd_state_stack  = list(statestack)
+    self._saved_state_stack  = list(statestack)
 
 # Monkeypatch!
 RegexLexer.get_tokens_unprocessed = get_tokens_unprocessed
@@ -145,9 +151,9 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
         prev_data = self.previous_block_data()
 
         if prev_data is not None:
-            self._lexer._epd_state_stack = prev_data.syntax_stack
-        elif hasattr(self._lexer, '_epd_state_stack'):
-            del self._lexer._epd_state_stack
+            self._lexer._saved_state_stack = prev_data.syntax_stack
+        elif hasattr(self._lexer, '_saved_state_stack'):
+            del self._lexer._saved_state_stack
 
         index = 0
         # Lex the text using Pygments
@@ -158,8 +164,8 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
                 self.setFormat(index, l, format)
             index += l
 
-        if hasattr(self._lexer, '_epd_state_stack'):
-            data = BlockUserData(syntax_stack=self._lexer._epd_state_stack)
+        if hasattr(self._lexer, '_saved_state_stack'):
+            data = BlockUserData(syntax_stack=self._lexer._saved_state_stack)
             self.currentBlock().setUserData(data)
 
             # there is a bug in pyside and it will crash unless we
@@ -167,7 +173,7 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
             data = self.currentBlock().userData()
 
             # Clean up for the next go-round.
-            del self._lexer._epd_state_stack
+            del self._lexer._saved_state_stack
 
     def previous_block_data(self):
         """ Convenience method for returning the previous block's user data.

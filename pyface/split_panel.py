@@ -15,8 +15,8 @@
 
 
 # Local imports.
-from split_widget import SplitWidget
-from widget import Widget
+from pyface.split_widget import SplitWidget
+from pyface.widget import Widget
 
 
 class SplitPanel(Widget, SplitWidget):
@@ -34,7 +34,3 @@ class SplitPanel(Widget, SplitWidget):
 
         # Create the widget's toolkit-specific control.
         self.control = self._create_splitter(parent)
-
-        return
-
-#### EOF ######################################################################

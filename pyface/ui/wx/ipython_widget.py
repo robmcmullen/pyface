@@ -38,7 +38,7 @@ from traits.util.clean_strings import python_name
 from pyface.wx.drag_and_drop import PythonDropTarget
 
 # Local imports.
-from widget import Widget
+from .widget import Widget
 
 # Constants.
 IPYTHON_VERSION = tuple(map(int, IPython.Release.version_base.split('.')))
@@ -435,10 +435,10 @@ class IPythonWidget(Widget):
         """ Called whenever a change is made to the text of the document. """
 
         self.key_pressed = KeyPressedEvent(
-            alt_down     = event.m_altDown == 1,
-            control_down = event.m_controlDown == 1,
-            shift_down   = event.m_shiftDown == 1,
-            key_code     = event.m_keyCode,
+            alt_down     = event.AltDown() == 1,
+            control_down = event.ControlDown() == 1,
+            shift_down   = event.ShiftDown() == 1,
+            key_code     = event.GetKeyCode(),
             event        = event
         )
 

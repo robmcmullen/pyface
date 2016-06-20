@@ -18,7 +18,7 @@
 from traits.api import Enum, Unicode
 
 # Local imports.
-from i_dialog import IDialog
+from pyface.i_dialog import IDialog
 
 
 class IMessageDialog(IDialog):
@@ -26,16 +26,16 @@ class IMessageDialog(IDialog):
 
     #### 'IMessageDialog' interface ###########################################
 
-    # The message to display in the dialog.
+    #: The message to display in the dialog.
     message = Unicode
 
-    # More information about the message to be displayed.
+    #: More information about the message to be displayed.
     informative = Unicode
 
-    # More detail about the message to be displayed in the dialog.
+    #: More detail about the message to be displayed in the dialog.
     detail = Unicode
 
-    # The severity of the message.
+    #: The severity of the message.
     severity = Enum('information', 'warning', 'error')
 
 
@@ -43,5 +43,3 @@ class MMessageDialog(object):
     """ The mixin class that contains common code for toolkit specific
     implementations of the IMessageDialog interface.
     """
-
-#### EOF ######################################################################

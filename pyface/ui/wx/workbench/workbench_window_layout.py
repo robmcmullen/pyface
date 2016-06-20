@@ -37,9 +37,9 @@ from pyface.workbench.i_workbench_window_layout import \
      MWorkbenchWindowLayout
 
 # Local imports.
-from editor_set_structure_handler import EditorSetStructureHandler
-from view_set_structure_handler import ViewSetStructureHandler
-from workbench_dock_window import WorkbenchDockWindow
+from .editor_set_structure_handler import EditorSetStructureHandler
+from .view_set_structure_handler import ViewSetStructureHandler
+from .workbench_dock_window import WorkbenchDockWindow
 
 
 # Logging.
@@ -248,6 +248,12 @@ class WorkbenchWindowLayout(MWorkbenchWindowLayout):
 
         return
 
+    def is_editor_area_visible(self):
+        dock_control = self._wx_view_dock_window.get_control(
+            self.editor_area_id, visible_only=False
+        )
+        return dock_control.visible
+        
     #### Methods for saving and restoring the layout ##########################
 
     def get_view_memento(self):

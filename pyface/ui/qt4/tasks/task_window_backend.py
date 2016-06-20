@@ -5,10 +5,10 @@ from pyface.qt import QtCore, QtGui
 from traits.api import Instance, List
 
 # Local imports.
-from dock_pane import AREA_MAP, INVERSE_AREA_MAP
-from main_window_layout import MainWindowLayout
 from pyface.tasks.i_task_window_backend import MTaskWindowBackend
 from pyface.tasks.task_layout import PaneItem, TaskLayout
+from .dock_pane import AREA_MAP, INVERSE_AREA_MAP
+from .main_window_layout import MainWindowLayout
 
 # Constants.
 CORNER_MAP = { 'top_left'     : QtCore.Qt.TopLeftCorner,
@@ -43,6 +43,8 @@ class TaskWindowBackend(MTaskWindowBackend):
         """
         QtGui.QApplication.instance().focusChanged.disconnect(
             self._focus_changed_signal)
+        # signal to layout we don't need it any more
+        self._main_window_layout.control = None
 
     def hide_task(self, state):
         """ Assuming the specified TaskState is active, hide its controls.
@@ -88,7 +90,7 @@ class TaskWindowBackend(MTaskWindowBackend):
         for name, corner in CORNER_MAP.iteritems():
             area = INVERSE_AREA_MAP[int(self.control.corner(corner))]
             setattr(layout, name + '_corner', area)
-            
+
         return layout
 
     def set_layout(self, layout):

@@ -10,10 +10,10 @@ from traits.api import DelegatesTo, Instance, on_trait_change, provides
 # Local imports.
 from pyface.tasks.i_advanced_editor_area_pane import IAdvancedEditorAreaPane
 from pyface.tasks.i_editor_area_pane import MEditorAreaPane
-from editor_area_pane import EditorAreaDropFilter
-from main_window_layout import MainWindowLayout, PaneItem
-from task_pane import TaskPane
-from util import set_focus
+from .editor_area_pane import EditorAreaDropFilter
+from .main_window_layout import MainWindowLayout, PaneItem
+from .task_pane import TaskPane
+from .util import set_focus
 
 ###############################################################################
 # 'AdvancedEditorAreaPane' class.
@@ -47,12 +47,9 @@ class AdvancedEditorAreaPane(TaskPane, MEditorAreaPane):
         if sys.platform == 'darwin':
             next_seq = 'Ctrl+}'
             prev_seq = 'Ctrl+{'
-        elif sys.platform.startswith('linux'):
+        else:
             next_seq = 'Ctrl+PgDown'
             prev_seq = 'Ctrl+PgUp'
-        else:
-            next_seq = 'Alt+n'
-            prev_seq = 'Alt+p'
         shortcut = QtGui.QShortcut(QtGui.QKeySequence(next_seq), self.control)
         shortcut.activated.connect(self._next_tab)
         shortcut = QtGui.QShortcut(QtGui.QKeySequence(prev_seq), self.control)
@@ -73,7 +70,7 @@ class AdvancedEditorAreaPane(TaskPane, MEditorAreaPane):
         """
         self.control.removeEventFilter(self._filter)
         self._filter = None
-        
+
         for editor in self.editors:
             editor_widget = editor.control.parent()
             self.control.destroy_editor_widget(editor_widget)
@@ -93,7 +90,7 @@ class AdvancedEditorAreaPane(TaskPane, MEditorAreaPane):
         editor_widget.raise_()
         editor.control.setFocus()
         self.active_editor = editor
-        
+
     def add_editor(self, editor):
         """ Adds an editor to the pane.
         """
@@ -195,7 +192,7 @@ class EditorAreaMainWindowLayout(MainWindowLayout):
     #### 'MainWindowLayout' interface #########################################
 
     control = DelegatesTo('editor_area')
-    
+
     #### 'TaskWindowLayout' interface #########################################
 
     editor_area = Instance(AdvancedEditorAreaPane)
@@ -220,7 +217,7 @@ class EditorAreaMainWindowLayout(MainWindowLayout):
             if editor.control == dock_widget.widget():
                 return PaneItem(id=i)
         return None
-        
+
 
 class EditorAreaWidget(QtGui.QMainWindow):
     """ An auxillary widget for implementing AdvancedEditorAreaPane.
@@ -288,7 +285,7 @@ class EditorAreaWidget(QtGui.QMainWindow):
         """
         return [ child for child in self.children()
                  if isinstance(child, QtGui.QDockWidget) and child.isVisible() ]
-    
+
     def get_dock_widgets_for_bar(self, tab_bar):
         """ Get the dock widgets, in order, attached to given tab bar.
 
@@ -310,7 +307,7 @@ class EditorAreaWidget(QtGui.QMainWindow):
         def compare(one, two):
             y = cmp(one.pos().y(), two.pos().y())
             return cmp(one.pos().x(), two.pos().x()) if y == 0 else y
-        
+
         children = []
         for child in self.children():
             if (child.isWidgetType() and child.isVisible() and
@@ -319,7 +316,7 @@ class EditorAreaWidget(QtGui.QMainWindow):
                   (visible_only or not self.tabifiedDockWidgets(child))))):
                 children.append(child)
         children.sort(cmp=compare)
-        
+
         widgets = []
         for child in children:
             if isinstance(child, QtGui.QTabBar):
@@ -371,7 +368,7 @@ class EditorAreaWidget(QtGui.QMainWindow):
         """
         old_widget = self._hover_widget
         self._hover_widget = widget
-        
+
         if old_widget:
             if old_widget in self._tear_widgets:
                 if len(self._tear_widgets) == 1:
@@ -417,10 +414,10 @@ class EditorAreaWidget(QtGui.QMainWindow):
 
         elif isinstance(obj, QtGui.QRubberBand):
             return self._filter_rubber_band(obj, event)
-        
+
         elif isinstance(obj, QtGui.QTabBar):
             return self._filter_tab_bar(obj, event)
-        
+
         return False
 
     def _filter_dock_widget(self, widget, event):
@@ -527,11 +524,11 @@ class EditorAreaWidget(QtGui.QMainWindow):
         editor_widget = self.get_dock_widgets_for_bar(self.sender())[index]
         editor_widget.editor.close()
 
-    
+
 class EditorWidget(QtGui.QDockWidget):
     """ An auxillary widget for implementing AdvancedEditorAreaPane.
     """
-    
+
     def __init__(self, editor, parent=None):
         super(EditorWidget, self).__init__(parent)
         self.editor = editor
@@ -555,7 +552,7 @@ class EditorWidget(QtGui.QDockWidget):
     def update_title(self):
         title = self.editor.editor_area._get_label(self.editor)
         self.setWindowTitle(title)
-        
+
         title_bar = self.titleBarWidget()
         if isinstance(title_bar, EditorTitleBarWidget):
             title_bar.setTabText(0, title)
@@ -579,12 +576,12 @@ class EditorWidget(QtGui.QDockWidget):
                 self.setTitleBarWidget(EditorTitleBarWidget(self))
         elif current is None or isinstance(current, EditorTitleBarWidget):
             self.setTitleBarWidget(QtGui.QWidget())
-                
+
 
 class EditorTitleBarWidget(QtGui.QTabBar):
     """ An auxillary widget for implementing AdvancedEditorAreaPane.
     """
-    
+
     def __init__(self, editor_widget):
         super(EditorTitleBarWidget, self).__init__(editor_widget)
         self.addTab(editor_widget.windowTitle())
@@ -601,6 +598,6 @@ class EditorTitleBarWidget(QtGui.QTabBar):
 
     def mouseMoveEvent(self, event):
         event.ignore()
-        
+
     def mouseReleaseEvent(self, event):
         event.ignore()

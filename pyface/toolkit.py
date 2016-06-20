@@ -12,13 +12,40 @@
 # Standard library imports.
 import os
 import sys
+import logging
 
 # Enthought library imports.
 from traits.etsconfig.api import ETSConfig
 
+logger = logging.getLogger(__name__)
 
 # This is set to the root part of the module path for the selected backend.
 _toolkit_backend = None
+
+
+try:
+    provisional_toolkit = ETSConfig.provisional_toolkit
+except AttributeError:
+    from contextlib import contextmanager
+
+    # for backward compatibility
+    @contextmanager
+    def provisional_toolkit(toolkit_name):
+        """ Perform an operation with toolkit provisionally set
+
+        This sets the toolkit attribute of the ETSConfig object set to the
+        provided value. If the operation fails with an exception, the toolkit
+        is reset to nothing.
+        """
+        if ETSConfig.toolkit:
+            raise AttributeError("ETSConfig toolkit is already set")
+        ETSConfig.toolkit = toolkit_name
+        try:
+            yield
+        except:
+            # reset the toolkit state
+            ETSConfig._toolkit = ''
+            raise
 
 
 def _init_toolkit():
@@ -38,31 +65,30 @@ def _init_toolkit():
         be = import_toolkit(ETSConfig.toolkit)
     else:
         # Toolkits to check for if none is explicitly specified.
-        known_toolkits = ('wx', 'qt4', 'null')
+        known_toolkits = ('qt4', 'wx', 'null')
 
         for tk in known_toolkits:
             try:
-                be = import_toolkit(tk)
-
-                # In case we have just decided on a toolkit, tell everybody else.
-                ETSConfig.toolkit = tk
+                with provisional_toolkit(tk):
+                    be = import_toolkit(tk)
                 break
-            except (SystemExit, ImportError):
-                import traceback
-                print >>sys.stderr, ('Warning: Unable to import the %s backend '
-                    'for pyface due to traceback: %s\n') % (tk,
-                    traceback.format_exc().strip().replace('\n', '\n\t'))
-
+            except ImportError as exc:
+                msg = "Could not import Pyface backend '{0}'"
+                logger.info(msg.format(tk))
+                if logger.getEffectiveLevel() <= logging.INFO:
+                    logger.exception(exc)
         else:
             # Try to import the null toolkit but don't set the ETSConfig toolkit
             try:
                 be = import_toolkit('null')
-                print >>sys.stderr, ("Info: Unable to import any backend (%s) "
-                    "for pyface; using the 'null' toolkit instead.\n") % ", ".join(known_toolkits)
-            except:
+                import warnings
+                msg = ("Unable to import the '{0}' backend for pyface; " +
+                       "using the 'null' backend instead.")
+                warnings.warn(msg.format(toolkit_name), RuntimeWarning)
+            except ImportError as exc:
+                logger.exception(exc)
                 raise ImportError("Unable to import a pyface backend for any "
                     "of the %s toolkits" % ", ".join(known_toolkits))
-
 
     # Save the imported toolkit module.
     global _toolkit_backend
@@ -75,16 +101,22 @@ del _init_toolkit
 
 
 def toolkit_object(name):
-    """ Return the toolkit specific object with the given name.  The name
-    consists of the relative module path and the object name separated by a
-    colon.
+    """ Return the toolkit specific object with the given name.
+
+    Parameters
+    ----------
+    name : str
+        The name consists of the relative module path and the object name
+        separated by a colon.
     """
 
     mname, oname = name.split(':')
     be_mname = _toolkit_backend + mname
 
     class Unimplemented(object):
-        """ This is returned if an object isn't implemented by the selected
+        """ An unimplemented toolkit object
+
+        This is returned if an object isn't implemented by the selected
         toolkit.  It raises an exception if it is ever instantiated.
         """
 
@@ -100,7 +132,11 @@ def toolkit_object(name):
             be_obj = getattr(sys.modules[be_mname], oname)
         except AttributeError:
             pass
-    except ImportError, e:
+    except ImportError as exc:
+        # is the error while trying to import be_mname or not?
+        if all(part not in exc.args[0] for part in mname.split('.')):
+                # something else went wrong - let the exception be raised
+                raise
 
         # Ignore *ANY* errors unless a debug ENV variable is set.
         if 'ETS_DEBUG' in os.environ:

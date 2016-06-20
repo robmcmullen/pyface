@@ -10,8 +10,8 @@ from traits.api import on_trait_change, provides
 from pyface.qt import QtCore, QtGui
 
 # Local imports.
-from task_pane import TaskPane
-from util import set_focus
+from .task_pane import TaskPane
+from .util import set_focus
 
 ###############################################################################
 # 'EditorAreaPane' class.
@@ -47,12 +47,9 @@ class EditorAreaPane(TaskPane, MEditorAreaPane):
         if sys.platform == 'darwin':
             next_seq = 'Ctrl+}'
             prev_seq = 'Ctrl+{'
-        elif sys.platform.startswith('linux'):
+        else:
             next_seq = 'Ctrl+PgDown'
             prev_seq = 'Ctrl+PgUp'
-        else:
-            next_seq = 'Alt+n'
-            prev_seq = 'Alt+p'
         shortcut = QtGui.QShortcut(QtGui.QKeySequence(next_seq), self.control)
         shortcut.activated.connect(self._next_tab)
         shortcut = QtGui.QShortcut(QtGui.QKeySequence(prev_seq), self.control)
@@ -73,7 +70,7 @@ class EditorAreaPane(TaskPane, MEditorAreaPane):
         """
         self.control.removeEventFilter(self._filter)
         self._filter = None
-        
+
         for editor in self.editors:
             self.remove_editor(editor)
 
@@ -87,7 +84,7 @@ class EditorAreaPane(TaskPane, MEditorAreaPane):
         """ Activates the specified editor in the pane.
         """
         self.control.setCurrentWidget(editor.control)
-        
+
     def add_editor(self, editor):
         """ Adds an editor to the pane.
         """
@@ -162,7 +159,7 @@ class EditorAreaPane(TaskPane, MEditorAreaPane):
         control = self.control.widget(index)
         editor = self._get_editor_with_control(control)
         editor.close()
-        
+
     def _update_active_editor(self):
         index = self.control.currentIndex()
         if index == -1:

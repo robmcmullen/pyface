@@ -69,7 +69,7 @@ class UserPerspectiveManager(HasTraits):
         if self._id_to_perspective is None:
             self._id_to_perspective = dic = {}
             try:
-                fh = file( self.file_name, 'r' )
+                fh = open( self.file_name, 'r' )
                 for line in fh:
                     data = line.split( ':', 1 )
                     if len( data ) == 2:
@@ -131,7 +131,8 @@ class UserPerspectiveManager(HasTraits):
         # fixme: This needs to be pushed into the window API!!!!!!!
         window._memento.perspective_mementos[clone.id] = (
             window.layout.get_view_memento(),
-            window.active_view and window.active_view.id or None
+            window.active_view and window.active_view.id or None,
+            window.layout.is_editor_area_visible()
         )
 
         # Update the persistent file information.
@@ -206,7 +207,7 @@ class UserPerspectiveManager(HasTraits):
         """ Update the persistent file information. """
 
         try:
-            fh = file( self.file_name, 'w' )
+            fh = open( self.file_name, 'w' )
             fh.write( '\n'.join( [ '%s: %s' % ( p.id, p.name )
                                    for p in self.perspectives ] ) )
             fh.close()

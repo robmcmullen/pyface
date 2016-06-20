@@ -17,10 +17,10 @@ import sys
 from pyface.qt import QtCore, QtGui
 
 # Local imports
-from find_widget import FindWidget
-from gutters import LineNumberWidget, StatusGutterWidget
-from replace_widget import ReplaceWidget
-from pygments_highlighter import PygmentsHighlighter
+from .find_widget import FindWidget
+from .gutters import LineNumberWidget, StatusGutterWidget
+from .replace_widget import ReplaceWidget
+from .pygments_highlighter import PygmentsHighlighter
 
 
 class CodeWidget(QtGui.QPlainTextEdit):
@@ -30,6 +30,7 @@ class CodeWidget(QtGui.QPlainTextEdit):
     ###########################################################################
     # CodeWidget interface
     ###########################################################################
+    focus_lost = QtCore.Signal()
 
     def __init__(self, parent, should_highlight_current_line=True, font=None,
                  lexer=None):
@@ -370,6 +371,9 @@ class CodeWidget(QtGui.QPlainTextEdit):
         pass
 
     def keyPressEvent(self, event):
+        if self.isReadOnly():
+            return super(CodeWidget, self).keyPressEvent(event)
+
         key_sequence = QtGui.QKeySequence(event.key() + int(event.modifiers()))
 
         self.keyPressEvent_action(event) # FIXME: see above
@@ -425,6 +429,11 @@ class CodeWidget(QtGui.QPlainTextEdit):
         self.status_widget.setGeometry(QtCore.QRect(right_pos,
             contents.top(), self.status_widget.sizeHint().width(),
             contents.height()))
+
+    def focusOutEvent(self, event):
+        QtGui.QPlainTextEdit.focusOutEvent(self, event)
+        self.focus_lost.emit()
+
 
     def sizeHint(self):
         # Suggest a size that is 80 characters wide and 40 lines tall.
@@ -709,11 +718,11 @@ class AdvancedCodeWidget(QtGui.QWidget):
 
     def keyPressEvent(self, event):
         key_sequence = QtGui.QKeySequence(event.key() + int(event.modifiers()))
-
         if key_sequence.matches(QtGui.QKeySequence.Find):
             self.enable_find()
         elif key_sequence.matches(QtGui.QKeySequence.Replace):
-            self.enable_replace()
+            if not self.code.isReadOnly():
+                self.enable_replace()
         elif key_sequence.matches(QtGui.QKeySequence(QtCore.Qt.Key_Escape)):
             if self.active_find_widget:
                 self.find.hide()
@@ -759,4 +768,3 @@ if __name__ == '__main__':
     window.resize(640, 640)
     window.show()
     sys.exit(app.exec_())
-

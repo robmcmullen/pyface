@@ -1,9 +1,16 @@
 from traits.testing.unittest_tools import unittest
+from traits.etsconfig.api import ETSConfig
 
-from enaml.widgets.api import Label
+if ETSConfig.toolkit not in ['', 'qt4']:
+    raise unittest.SkipTest("TestEnamlEditor: Enaml does not support WX")
+
+try:
+    from enaml.widgets.api import Label
+    from traits_enaml.testing.gui_test_assistant import GuiTestAssistant
+except ImportError:
+    raise unittest.SkipTest("Enaml not installed")
+
 from traits.api import Str
-from traits_enaml.testing.gui_test_assistant import GuiTestAssistant
-
 from pyface.tasks.api import EnamlEditor
 
 
@@ -13,7 +20,6 @@ class DummyStrEditor(EnamlEditor):
 
     def create_component(self):
         return Label(text=self.obj)
-
 
 class TestEnamlEditor(GuiTestAssistant, unittest.TestCase):
 

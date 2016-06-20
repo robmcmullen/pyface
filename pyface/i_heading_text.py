@@ -18,7 +18,7 @@
 from traits.api import Instance, Int, Interface, Unicode
 
 # Local imports.
-from image_resource import ImageResource
+from pyface.i_image_resource import IImageResource
 
 
 class IHeadingText(Interface):
@@ -26,22 +26,20 @@ class IHeadingText(Interface):
 
     #### 'IHeadingText' interface #############################################
 
-    # Heading level.
+    #: Heading level.
     #
     # fixme: Currently we ignore anything but one, but in future we could
     # have different visualizations based on the level.
     level = Int(1)
 
-    # The heading text.
+    #: The heading text.
     text = Unicode('Default')
 
-    # The background image.
-    image = Instance(ImageResource)
+    #: The background image.
+    image = Instance(IImageResource)
 
 
 class MHeadingText(object):
     """ The mixin class that contains common code for toolkit specific
     implementations of the IHeadingText interface.
     """
-
-#### EOF ######################################################################

@@ -13,14 +13,28 @@
 #------------------------------------------------------------------------------
 """ The implementation of a dialog that prompts the user for confirmation. """
 
+from __future__ import absolute_import
 
 # Local imports.
-from constant import NO
+from .constant import NO
 
 
 def confirm(parent, message, title=None, cancel=False, default=NO):
-    """ Convenience function to show a confirmation dialog. """
+    """ Convenience method to show a confirmation dialog.
 
+    Parameters
+    ----------
+    parent : toolkit widget or None
+        The parent control for the dialog.
+    message : str
+        The text of the message to display.
+    title : str
+        The text of the dialog title.
+    cancel : bool
+        ``True`` if the dialog should contain a Cancel button.
+    default : NO, YES or CANCEL
+        Which button should be the default button.
+    """
     if title is None:
         title = "Confirmation"
 
@@ -36,7 +50,7 @@ def confirm(parent, message, title=None, cancel=False, default=NO):
 
 
 # Import the toolkit specific version.
-from toolkit import toolkit_object
+from .toolkit import toolkit_object
 ConfirmationDialog = toolkit_object('confirmation_dialog:ConfirmationDialog')
 
 #### EOF ######################################################################
