@@ -22,7 +22,7 @@ import sys
 
 # Major package imports.
 import wx
-from pyface.wx.aui import aui
+from pyface.wx.aui import aui, PyfaceAuiManager
 
 # Enthought library imports.
 from pyface.action.api import MenuBarManager, StatusBarManager
@@ -136,7 +136,7 @@ class ApplicationWindow(MApplicationWindow, Window):
         super(ApplicationWindow, self)._create()
 
         if aui is not None:
-            self._aui_manager = aui.AuiManager()
+            self._aui_manager = PyfaceAuiManager()
             self._aui_manager.SetManagedWindow(self.control)
             
             # Keep a reference to the AUI Manager in the control because Panes

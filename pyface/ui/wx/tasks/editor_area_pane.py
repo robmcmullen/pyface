@@ -9,7 +9,7 @@ from traits.api import on_trait_change, provides
 
 # System library imports.
 import wx
-from pyface.wx.aui import aui
+from pyface.wx.aui import aui, PyfaceAuiNotebook
 
 # Local imports.
 from task_pane import TaskPane
@@ -31,7 +31,7 @@ class EditorAreaPane(TaskPane, MEditorAreaPane):
     """
 
     style = aui.AUI_NB_WINDOWLIST_BUTTON|aui.AUI_NB_TAB_MOVE|aui.AUI_NB_SCROLL_BUTTONS|aui.AUI_NB_CLOSE_ON_ACTIVE_TAB
-    
+
     ###########################################################################
     # 'TaskPane' interface.
     ###########################################################################
@@ -42,7 +42,7 @@ class EditorAreaPane(TaskPane, MEditorAreaPane):
         """
         logger.debug("editor pane parent: %s" % parent)
         # Create and configure the tab widget.
-        self.control = control = aui.AuiNotebook(parent, style=self.style)
+        self.control = control = PyfaceAuiNotebook(parent, agwStyle=self.style)
 #        control.tabBar().setVisible(not self.hide_tab_bar)
 
         # Connect to the widget's signals.
