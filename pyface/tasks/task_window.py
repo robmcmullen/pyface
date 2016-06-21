@@ -158,7 +158,6 @@ class TaskWindow(ApplicationWindow):
             task.activated()
 
             self._window_backend.end_batch_window_updates()
-
         elif not state:
             logger.warn("Cannot activate task %r: task does not belong to the "
                         "window." % task)
