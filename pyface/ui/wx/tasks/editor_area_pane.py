@@ -13,7 +13,6 @@ from pyface.wx.aui import aui, PyfaceAuiNotebook
 
 # Local imports.
 from task_pane import TaskPane
-from util import set_focus
 
 # Logging
 logger = logging.getLogger(__name__)
