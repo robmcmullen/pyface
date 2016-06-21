@@ -22,6 +22,12 @@ class PyfaceAuiNotebook(aui.AuiNotebook):
 
 
 class PyfaceAuiManager(aui.AuiManager):
+    # The standard AuiManager dock resizing attempts to adjust all the docks to
+    # provide some sort of best fit, but when there are more than two panes in
+    # a dock it isn't very intuitive. The modifications to these three methods
+    # tries to keep as many sizers fixes as it can and only adjust the one that
+    # is added.
+
     def CalculateDockSizerLimits(self, dock):
         # Replacement for default calculation for min/max dock sizes. Instead
         # of adjusting the sizes of all the docks, only adjusts one to make the
