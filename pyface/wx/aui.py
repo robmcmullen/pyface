@@ -3,6 +3,9 @@ import logging
 
 import os
 
+# Major package imports.
+import wx
+
 # Logger.
 logger = logging.getLogger(__name__)
 
@@ -66,7 +69,7 @@ class PyfaceAuiManager(aui.AuiManager):
         for part in uiparts:
 
             part.rect = wx.RectPS(part.sizer_item.GetPosition(), part.sizer_item.GetSize())
-            if part.type == aui.AuiDockUiPart.typeDock:
+            if part.type == aui.AuiDockUIPart.typeDock:
                 part.dock.rect = part.rect
 
         sizer.Destroy()
@@ -178,12 +181,12 @@ class PyfaceAuiManager(aui.AuiManager):
             else:
                 dc = wx.ScreenDC()
 
-            DrawResizeHint(dc, self._action_rect)
+            aui.DrawResizeHint(dc, self._action_rect)
             self._action_rect = wx.Rect()
 
         newPos = clientPt - self._action_offset
 
-        if self._action_part.type == aui.AuiDockUiPart.typeDockSizer:
+        if self._action_part.type == aui.AuiDockUIPart.typeDockSizer:
             minPix, maxPix = self.CalculateDockSizerLimits(dock)
         else:
             if not self._action_part.pane:
@@ -195,7 +198,7 @@ class PyfaceAuiManager(aui.AuiManager):
         else:
             newPos.x = aui.Clip(newPos.x, minPix, maxPix)
 
-        if self._action_part.type == aui.AuiDockUiPart.typeDockSizer:
+        if self._action_part.type == aui.AuiDockUIPart.typeDockSizer:
             partner = self.GetPartnerDockFromPos(dock, newPos)
             sash_size = self._art.GetMetric(aui.AUI_DOCKART_SASH_SIZE)
             button_size = self._art.GetMetric(aui.AUI_DOCKART_PANE_BUTTON_SIZE)
