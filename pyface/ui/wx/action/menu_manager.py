@@ -128,7 +128,21 @@ class _Menu(wx.Menu):
         for item in self.GetMenuItems():
             if item.GetSubMenu() is not None:
                 item.GetSubMenu().clear()
-            self.Delete(item.GetId())
+
+            # FIXME: workaround on Mac: calling DeleteItem for a radio item
+            # that is in a menu that has two radio groups results in a
+            # segfault. For now, skip deleting those and this will leak
+            # some menu items. This seems to be
+            if hasattr(item, "GetParent"):
+                self.DeleteItem(item)
+            else:
+                menu = item.GetMenu()
+                #print "MENUITEM", item, "MENULABEL", item.GetItemLabelText(), "ADDR", item.__dict__['this'].__hex__() #"MENUID", item.GetId(), "  ISALIVE", bool(menu), "PARENT", menu
+                if item.IsCheckable():
+                    print "Skipping deletion of radio item", item.GetId(), item.GetItemLabelText()
+                    #menu.RemoveItem(item)
+                else:
+                    self.DeleteItem(item)
 
         for item in self.menu_items:
             item.dispose()
