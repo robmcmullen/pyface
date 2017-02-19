@@ -16,6 +16,7 @@
 
 """ The wx specific implementation of a menu manager.
 """
+import sys
 
 # Major package imports.
 import wx
@@ -138,7 +139,7 @@ class _Menu(wx.Menu):
             else:
                 menu = item.GetMenu()
                 #print "MENUITEM", item, "MENULABEL", item.GetItemLabelText(), "ADDR", item.__dict__['this'].__hex__() #"MENUID", item.GetId(), "  ISALIVE", bool(menu), "PARENT", menu
-                if item.IsCheckable():
+                if item.IsCheckable() and sys.platform == "darwin":
                     print "Skipping deletion of radio item", item.GetId(), item.GetItemLabelText()
                     #menu.RemoveItem(item)
                 else:
