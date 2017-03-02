@@ -29,6 +29,11 @@ from pyface.action.action_manager import ActionManager
 from pyface.action.action_manager_item import ActionManagerItem
 from pyface.action.group import Group
 
+# FIXME: workaround on Mac: calling DeleteItem for a radio item that is in a
+# menu that has two radio groups results in a segfault. It only seems to
+# happend on application exit, so this canary value should be set in an
+# application_exiting trait event handler
+Mac_no_delete_radio_group_on_exit_hack = False
 
 class MenuManager(ActionManager, ActionManagerItem):
     """ A menu manager realizes itself in a menu control.
@@ -130,18 +135,12 @@ class _Menu(wx.Menu):
             if item.GetSubMenu() is not None:
                 item.GetSubMenu().clear()
 
-            # FIXME: workaround on Mac: calling DeleteItem for a radio item
-            # that is in a menu that has two radio groups results in a
-            # segfault. For now, skip deleting those and this will leak
-            # some menu items. This seems to be
             if hasattr(item, "GetParent"):
                 self.DeleteItem(item)
             else:
                 menu = item.GetMenu()
-                #print "MENUITEM", item, "MENULABEL", item.GetItemLabelText(), "ADDR", item.__dict__['this'].__hex__() #"MENUID", item.GetId(), "  ISALIVE", bool(menu), "PARENT", menu
-                if item.IsCheckable() and sys.platform == "darwin":
-                    print "Skipping deletion of radio item", item.GetId(), item.GetItemLabelText()
-                    #menu.RemoveItem(item)
+                if Mac_no_delete_radio_group_on_exit_hack and item.IsCheckable():
+                    print "FIXME: MacOS segfault workaround: skipping deletion of radio item", item.GetId(), item.GetItemLabelText()
                 else:
                     self.DeleteItem(item)
 
