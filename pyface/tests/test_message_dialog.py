@@ -1,24 +1,39 @@
 from __future__ import absolute_import
 
+import os
+
 from traits.etsconfig.api import ETSConfig
 from traits.testing.unittest_tools import unittest
 
-from ..message_dialog import MessageDialog
-from ..constant import OK, CANCEL
+from ..message_dialog import MessageDialog, information, warning, error
+from ..constant import OK
 from ..gui import GUI
 from ..toolkit import toolkit_object
 from ..window import Window
 
+
+GuiTestAssistant = toolkit_object('util.gui_test_assistant:GuiTestAssistant')
+no_gui_test_assistant = (GuiTestAssistant.__name__ == 'Unimplemented')
+
 ModalDialogTester = toolkit_object('util.modal_dialog_tester:ModalDialogTester')
 no_modal_dialog_tester = (ModalDialogTester.__name__ == 'Unimplemented')
 
-USING_QT = ETSConfig.toolkit not in ['', 'wx']
+USING_QT = ETSConfig.toolkit not in ['', 'null', 'wx']
+is_pyqt5 = (ETSConfig.toolkit == 'qt4' and os.environ.get('QT_API') == 'pyqt5')
 
-class TestMessageDialog(unittest.TestCase):
+
+@unittest.skipIf(no_gui_test_assistant, 'No GuiTestAssistant')
+class TestMessageDialog(unittest.TestCase, GuiTestAssistant):
 
     def setUp(self):
-        self.gui = GUI()
+        GuiTestAssistant.setUp(self)
         self.dialog = MessageDialog()
+
+    def tearDown(self):
+        if self.dialog.control is not None:
+            with self.delete_widget(self.dialog.control):
+                self.dialog.destroy()
+        GuiTestAssistant.tearDown(self)
 
     def test_create(self):
         # test that creation and destruction works as expected
@@ -28,6 +43,20 @@ class TestMessageDialog(unittest.TestCase):
 
     def test_destroy(self):
         # test that destroy works even when no control
+        self.dialog.destroy()
+
+    def test_size(self):
+        # test that size works as expected
+        self.dialog.size = (100, 100)
+        self.dialog._create()
+        self.gui.process_events()
+        self.dialog.destroy()
+
+    def test_position(self):
+        # test that position works as expected
+        self.dialog.position = (100, 100)
+        self.dialog._create()
+        self.gui.process_events()
         self.dialog.destroy()
 
     def test_create_parent(self):
@@ -103,6 +132,7 @@ class TestMessageDialog(unittest.TestCase):
         self.assertEqual(tester.result, OK)
         self.assertEqual(self.dialog.return_code, OK)
 
+    @unittest.skipIf(is_pyqt5, "Message dialog click tests don't work on pyqt5.")  # noqa
     @unittest.skipIf(no_modal_dialog_tester, 'ModalDialogTester unavailable')
     def test_ok(self):
         # test that OK works as expected
@@ -132,3 +162,42 @@ class TestMessageDialog(unittest.TestCase):
         parent.close()
         self.assertEqual(tester.result, OK)
         self.assertEqual(self.dialog.return_code, OK)
+
+
+@unittest.skipIf(no_gui_test_assistant, 'No GuiTestAssistant')
+@unittest.skipIf(no_modal_dialog_tester, 'ModalDialogTester unavailable')
+class TestMessageDialogHelpers(unittest.TestCase, GuiTestAssistant):
+
+    def test_information(self):
+        self._check_dialog(information)
+
+    def test_warning(self):
+        self._check_dialog(warning)
+
+    def test_error(self):
+        self._check_dialog(error)
+
+    def _check_dialog(self, helper):
+        message = 'message'
+        kwargs = {
+            'title': 'Title',
+            'detail': 'Detail',
+            'informative': 'Informative'
+        }
+
+        # smoke test, since dialog helper is opaque
+        result = self._open_and_close(helper, message, **kwargs)
+
+        self.assertIsNone(result)
+
+    def _open_and_close(self, helper, message, **kwargs):
+        parent = Window()
+        parent.open()
+
+        when_opened = lambda x: x.close(accept=True)
+
+        tester = ModalDialogTester(helper)
+        tester.open_and_wait(when_opened, parent.control, message, **kwargs)
+
+        parent.close()
+        return tester.result
