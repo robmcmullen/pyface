@@ -16,7 +16,6 @@
 
 """ The wx specific implementation of a menu manager.
 """
-import sys
 
 # Major package imports.
 import wx
@@ -29,11 +28,6 @@ from pyface.action.action_manager import ActionManager
 from pyface.action.action_manager_item import ActionManagerItem
 from pyface.action.group import Group
 
-# FIXME: workaround on Mac: calling DeleteItem for a radio item that is in a
-# menu that has two radio groups results in a segfault. It only seems to
-# happend on application exit, so this canary value should be set in an
-# application_exiting trait event handler
-Mac_no_delete_radio_group_on_exit_hack = False
 
 class MenuManager(ActionManager, ActionManagerItem):
     """ A menu manager realizes itself in a menu control.
@@ -134,15 +128,7 @@ class _Menu(wx.Menu):
         for item in self.GetMenuItems():
             if item.GetSubMenu() is not None:
                 item.GetSubMenu().clear()
-
-            if hasattr(item, "GetParent"):
-                self.DeleteItem(item)
-            else:
-                menu = item.GetMenu()
-                if Mac_no_delete_radio_group_on_exit_hack and item.IsCheckable():
-                    print "FIXME: MacOS segfault workaround: skipping deletion of radio item", item.GetId(), item.GetItemLabelText()
-                else:
-                    self.DeleteItem(item)
+            self.Delete(item.GetId())
 
         for item in self.menu_items:
             item.dispose()
