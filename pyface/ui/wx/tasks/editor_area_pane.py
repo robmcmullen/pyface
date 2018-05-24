@@ -128,7 +128,8 @@ class EditorAreaPane(TaskPane, MEditorAreaPane):
 
     @on_trait_change('editors:tooltip')
     def _update_tooltip(self, editor, name, new):
-        self.control.SetPageToolTip(editor.control, editor.tooltip)
+        index = self.control.GetPageIndex(editor.control)
+        self.control.SetPageToolTip(index, editor.tooltip)
 
     #### Signal handlers ######################################################
 
